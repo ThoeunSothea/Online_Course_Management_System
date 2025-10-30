@@ -1,11 +1,11 @@
 <?php
 
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCoursesExtraTables extends Migration
+// ✅ ប្រើ anonymous class
+return new class extends Migration
 {
     public function up(): void
     {
@@ -23,4 +23,4 @@ class CreateCoursesExtraTables extends Migration
     {
         Schema::dropIfExists('tbl_course_carts');
     }
-}
+};
