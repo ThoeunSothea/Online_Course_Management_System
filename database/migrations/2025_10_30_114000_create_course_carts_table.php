@@ -11,7 +11,7 @@ class CreateCoursesExtraTables extends Migration
     {
         Schema::create('tbl_course_carts', function (Blueprint $table) {
             $table->id('cart_id');
-            $table->unsignedBigInteger('course_id');
+            $table->unsignedBigInteger('course_id');           
             $table->timestamps();
 
             // Foreign key
