@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refresh']);
     // User Profile
+    Route::get('/users', [AuthController::class, 'index']);
     Route::get('/profile', [ApiProfileController::class, 'show']);
     Route::put('/profile', [ApiProfileController::class, 'update']);
     Route::post('/logout', [AuthController::class, 'logout']);

@@ -94,4 +94,14 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
         ]);
     }
+    public function index()
+    {
+        $users = User::with('role')->get();
+
+        return response()->json([
+            'message' => 'All registered users',
+            'data' => $users
+        ]);
+    }
+
 }
