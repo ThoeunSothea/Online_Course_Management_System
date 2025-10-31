@@ -22,11 +22,14 @@ use App\Http\Controllers\Api\RequestCourseController as ApiRequestCourseControll
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->get('/dashboard', [ApiDashboardController::class, 'index']);
-
-
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return response()->json([
+        'user' => $request->user()
+    ]);
+});
 // Protected Routes (requires auth:sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-
+    Route::post('/refresh-token', [AuthController::class, 'refresh']);
     // User Profile
     Route::get('/profile', [ApiProfileController::class, 'show']);
     Route::put('/profile', [ApiProfileController::class, 'update']);
