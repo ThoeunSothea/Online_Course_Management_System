@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tbl_roles', function (Blueprint $table) {
-            $table->id('role_id'); // ត្រូវតែដូចគ្នានឹង foreign key reference
+            $table->id('role_id'); 
             $table->string('role_name', 50);
             $table->text('description')->nullable();
             $table->timestamps();

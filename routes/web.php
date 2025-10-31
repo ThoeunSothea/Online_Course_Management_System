@@ -31,3 +31,7 @@ use Illuminate\Support\Facades\Route;
 // Route::resource('announcements', AnnouncementController::class)->only(['index', 'create', 'store', 'destroy']);
 // Route::resource('approvals', ApprovalController::class);
 // Route::resource('request-courses', RequestCourseController::class)->only(['index', 'create', 'store', 'destroy']);
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

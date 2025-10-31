@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DashboardController as ApiDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -18,16 +19,18 @@ use App\Http\Controllers\Api\ApprovalController as ApiApprovalController;
 use App\Http\Controllers\Api\RequestCourseController as ApiRequestCourseController;
 
 // Public Routes
-Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::middleware('auth:sanctum')->get('/dashboard', [ApiDashboardController::class, 'index']);
+
 
 // Protected Routes (requires auth:sanctum)
 Route::middleware('auth:sanctum')->group(function () {
 
     // User Profile
-    Route::get('profile', [ApiProfileController::class, 'show']);
-    Route::put('profile', [ApiProfileController::class, 'update']);
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [ApiProfileController::class, 'show']);
+    Route::put('/profile', [ApiProfileController::class, 'update']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Roles
     Route::apiResource('roles', ApiRoleController::class);
@@ -42,9 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('course-schedules', ApiCourseScheduleController::class);
 
     // Course Carts
-    Route::get('course-carts', [ApiCourseCartController::class, 'index']);
-    Route::post('course-carts', [ApiCourseCartController::class, 'store']);
-    Route::delete('course-carts/{id}', [ApiCourseCartController::class, 'destroy']);
+    Route::get('/course-carts', [ApiCourseCartController::class, 'index']);
+    Route::post('/course-carts', [ApiCourseCartController::class, 'store']);
+    Route::delete('/course-carts/{id}', [ApiCourseCartController::class, 'destroy']);
 
     // Assignments
     Route::apiResource('assignments', ApiAssignmentController::class);
@@ -53,9 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('quizzes', ApiQuizController::class);
 
     // Enrollments
-    Route::get('enrollments', [ApiEnrollmentController::class, 'index']);
-    Route::post('enrollments', [ApiEnrollmentController::class, 'store']);
-    Route::delete('enrollments/{id}', [ApiEnrollmentController::class, 'destroy']);
+    Route::get('/enrollments', [ApiEnrollmentController::class, 'index']);
+    Route::post('/enrollments', [ApiEnrollmentController::class, 'store']);
+    Route::delete('/enrollments/{id}', [ApiEnrollmentController::class, 'destroy']);
 
     // Materials
     Route::apiResource('materials', ApiMaterialController::class)->only(['index','store','destroy']);

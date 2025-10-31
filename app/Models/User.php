@@ -1,95 +1,68 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // ✅ បន្ថែម Sanctum
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable; // ✅ បន្ថែម HasApiTokens និង Notifiable
+    use HasApiTokens, HasFactory, Notifiable;
 
-    protected $table = 'tbl_users';
-    protected $primaryKey = 'user_id';
-    
+    protected $table = 'tbl_users';       // ✅ custom table
+    protected $primaryKey = 'user_id';    // ✅ custom primary key
+
     protected $fillable = [
-        'role_id', 
-        'username', 
-        'email', 
-        'password', 
-        'otp', 
-        'otp_expired_at', 
-        'email_verified_at'
+        'role_id',
+        'username',
+        'email',
+        'password',
+        'otp',
+        'otp_expired_at',
+        'email_verified_at',
+        'remember_token'
     ];
-    
+
     protected $hidden = [
-        'password', 
-        'remember_token', 
-        'otp' // ✅ លាក់ OTP
+        'password',
+        'remember_token',
+        'otp'
     ];
-    
+
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'otp_expired_at' => 'datetime', // ✅ បន្ថែម casting
-        'password' => 'hashed' // ✅ Laravel 9+
+        'otp_expired_at' => 'datetime',
+        'password' => 'hashed'
     ];
 
-    /**
-     * Relationship with Role
-     */
+    // Relationships
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
     }
 
-    /**
-     * Relationship with Profile
-     */
     public function profile()
     {
         return $this->hasOne(Profile::class, 'user_id', 'user_id');
     }
 
-    /**
-     * Relationship with Enrollments as Professor
-     */
-    public function teachingEnrollments()
+    // Role helpers
+    public function isAdmin(): bool
     {
-        return $this->hasMany(Enrollment::class, 'prof_id', 'user_id');
+        return (int)$this->role_id === 1;
     }
 
-    /**
-     * Relationship with Enrollments as Student
-     */
-    public function studentEnrollments()
+    public function isInstructor(): bool
     {
-        return $this->hasMany(Enrollment::class, 'student_id', 'user_id');
+        return (int)$this->role_id === 2;
     }
 
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin()
+    public function isStudent(): bool
     {
-        return $this->role_id === 1; // Assuming 1 is admin role_id
-    }
-
-    /**
-     * Check if user is instructor
-     */
-    public function isInstructor()
-    {
-        return $this->role_id === 2; // Assuming 2 is instructor role_id
-    }
-
-    /**
-     * Check if user is student
-     */
-    public function isStudent()
-    {
-        return $this->role_id === 3; // Assuming 3 is student role_id
+        return (int)$this->role_id === 3;
     }
 }
