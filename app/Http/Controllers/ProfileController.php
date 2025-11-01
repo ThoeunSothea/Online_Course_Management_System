@@ -17,12 +17,13 @@ class ProfileController extends Controller
     }
     public function update(Request $request)
     {
+
         /** @var User $user */
-        $user = Auth::user();
+        $user = Auth::user();   
 
         $request->validate([
             'username' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:tbl_users,email,' . $user->user_id . ',user_id',
             'password' => 'nullable|min:6|confirmed',
         ]);
 
@@ -34,5 +35,5 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Profile updated', 'user' => $user]);
     }
-    
+
 }

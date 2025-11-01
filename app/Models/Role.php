@@ -9,17 +9,16 @@ class Role extends Model
 {
     use HasFactory;
 
-    protected $table = 'tbl_roles';
-    protected $primaryKey = 'role_id';
-    
+    protected $table = 'tbl_roles';     // តារាងដែលអ្នកប្រើ
+    protected $primaryKey = 'role_id';  // Primary key ក្នុង table
+
     protected $fillable = [
         'role_name',
-        'description'
+        'created_at',
+        'updated_at'
     ];
 
-    /**
-     * Relationship with Users
-     */
+    // Relationship (១ Role មាន Users ច្រើន)
     public function users()
     {
         return $this->hasMany(User::class, 'role_id', 'role_id');

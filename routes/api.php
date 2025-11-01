@@ -23,7 +23,18 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Dashboard (auth only)
-Route::middleware('auth:sanctum')->get('/dashboard', [DashboardController::class, 'index']);
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/admin/dashboard', [DashboardController::class, 'index']);
+});
+
+Route::middleware(['auth:sanctum', 'role:lecturer'])->group(function () {
+    Route::get('/lecturer/dashboard', [DashboardController::class, 'index']);
+});
+
+Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
+    Route::get('/student/dashboard', [DashboardController::class, 'index']);
+});
+
 
 // ================= AUTH REQUIRED ==================
 Route::middleware('auth:sanctum')->group(function () {
@@ -38,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 // ================= ADMIN ROUTES ==================
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::middleware(['auth:sa nctum', 'role:admin'])->group(function () {
     Route::get('/users', [AuthController::class, 'index']);
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('approvals', ApprovalController::class);
