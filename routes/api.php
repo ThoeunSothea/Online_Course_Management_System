@@ -1,78 +1,74 @@
 <?php
 
-use App\Http\Controllers\Api\DashboardController as ApiDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\RoleController as ApiRoleController;
-use App\Http\Controllers\Api\ProfileController as ApiProfileController;
-use App\Http\Controllers\Api\CourseController as ApiCourseController;
-use App\Http\Controllers\Api\CourseCategoryController as ApiCourseCategoryController;
-use App\Http\Controllers\Api\CourseScheduleController as ApiCourseScheduleController;
-use App\Http\Controllers\Api\CourseCartController as ApiCourseCartController;
-use App\Http\Controllers\Api\AssignmentController as ApiAssignmentController;
-use App\Http\Controllers\Api\QuizController as ApiQuizController;
-use App\Http\Controllers\Api\EnrollmentController as ApiEnrollmentController;
-use App\Http\Controllers\Api\MaterialController as ApiMaterialController;
-use App\Http\Controllers\Api\AnnouncementController as ApiAnnouncementController;
-use App\Http\Controllers\Api\ApprovalController as ApiApprovalController;
-use App\Http\Controllers\Api\RequestCourseController as ApiRequestCourseController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseCategoryController;
+use App\Http\Controllers\CourseScheduleController;
+use App\Http\Controllers\CourseCartController;
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\RequestCourseController;
 
-// Public Routes
+// ================= PUBLIC ROUTES ==================
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::middleware('auth:sanctum')->get('/dashboard', [ApiDashboardController::class, 'index']);
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return response()->json([
-        'user' => $request->user()
-    ]);
-});
-// Protected Routes (requires auth:sanctum)
+
+// Dashboard (auth only)
+Route::middleware('auth:sanctum')->get('/dashboard', [DashboardController::class, 'index']);
+
+// ================= AUTH REQUIRED ==================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refresh']);
-    // User Profile
-    Route::get('/users', [AuthController::class, 'index']);
-    Route::get('/profile', [ApiProfileController::class, 'show']);
-    Route::put('/profile', [ApiProfileController::class, 'update']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', fn(Request $req) => response()->json(['user' => $req->user()]));
 
-    // Roles
-    Route::apiResource('roles', ApiRoleController::class);
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+});
 
-    // Courses
-    Route::apiResource('courses', ApiCourseController::class);
 
-    // Categories
-    Route::apiResource('course-categories', ApiCourseCategoryController::class);
+// ================= ADMIN ROUTES ==================
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/users', [AuthController::class, 'index']);
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('approvals', ApprovalController::class);
+    Route::apiResource('course-categories', CourseCategoryController::class);
+    Route::apiResource('courses', CourseController::class)->only(['index', 'show', 'destroy']);
+});
 
-    // Schedules
-    Route::apiResource('course-schedules', ApiCourseScheduleController::class);
 
-    // Course Carts
-    Route::get('/course-carts', [ApiCourseCartController::class, 'index']);
-    Route::post('/course-carts', [ApiCourseCartController::class, 'store']);
-    Route::delete('/course-carts/{id}', [ApiCourseCartController::class, 'destroy']);
+// ================= LECTURER ROUTES ==================
+Route::middleware(['auth:sanctum', 'role:lecturer'])->group(function () {
+    // Manage own courses
+    Route::apiResource('courses', CourseController::class)->only(['index','store','update','show']);
+    Route::apiResource('course-schedules', CourseScheduleController::class);
+    Route::apiResource('assignments', AssignmentController::class);
+    Route::apiResource('quizzes', QuizController::class);
+    Route::apiResource('materials', MaterialController::class)->only(['index','store','destroy']);
+    Route::apiResource('announcements', AnnouncementController::class)->only(['index','store','destroy']);
+});
 
-    // Assignments
-    Route::apiResource('assignments', ApiAssignmentController::class);
 
-    // Quizzes
-    Route::apiResource('quizzes', ApiQuizController::class);
+// ================= STUDENT ROUTES ==================
+Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
+    Route::get('/courses', [CourseController::class, 'index']);
+    Route::get('/enrollments', [EnrollmentController::class, 'index']);
+    Route::post('/enrollments', [EnrollmentController::class, 'store']);
+    Route::delete('/enrollments/{id}', [EnrollmentController::class, 'destroy']);
 
-    // Enrollments
-    Route::get('/enrollments', [ApiEnrollmentController::class, 'index']);
-    Route::post('/enrollments', [ApiEnrollmentController::class, 'store']);
-    Route::delete('/enrollments/{id}', [ApiEnrollmentController::class, 'destroy']);
+    Route::get('/course-carts', [CourseCartController::class, 'index']);
+    Route::post('/course-carts', [CourseCartController::class, 'store']);
+    Route::delete('/course-carts/{id}', [CourseCartController::class, 'destroy']);
 
-    // Materials
-    Route::apiResource('materials', ApiMaterialController::class)->only(['index','store','destroy']);
-
-    // Announcements
-    Route::apiResource('announcements', ApiAnnouncementController::class)->only(['index','store','destroy']);
-
-    // Approvals
-    Route::apiResource('approvals', ApiApprovalController::class);
-
-    // Request Courses
-    Route::apiResource('request-courses', ApiRequestCourseController::class)->only(['index','store','destroy']);
+    Route::apiResource('request-courses', RequestCourseController::class)->only(['index','store','destroy']);
 });

@@ -1,42 +1,51 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    // =======================
+    // REGISTER
+    // =======================
     public function register(Request $request)
     {
-        $request->validate([
-            'username' => 'required|string|max:100|unique:tbl_users,username',
-            'email' => 'required|email|unique:tbl_users,email',
+        $data = $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:tbl_users,email',
             'password' => 'required|string|min:6|confirmed',
-            'role_id' => 'required|exists:tbl_roles,role_id'
+            'role_id' => 'nullable|exists:tbl_roles,role_id',
         ]);
 
+        // Default role = student
+        $data['role_id'] = $data['role_id'] ?? 3;
+
         $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
+            'username' => $data['username'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role_id' => $data['role_id'],
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'success' => true,
             'message' => 'User registered successfully',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user->only('user_id', 'username', 'email', 'role_id'),
         ], 201);
     }
 
+    // =======================
+    // LOGIN
+    // =======================
     public function login(Request $request)
     {
         $request->validate([
@@ -62,40 +71,44 @@ class AuthController extends Controller
         ]);
     }
 
+    // =======================
+    // LOGOUT
+    // =======================
     public function logout(Request $request)
     {
-        // ✅ ប្រើ Auth check ជាមុនសិន
-        if (Auth::check()) {
-            $request->user()->currentAccessToken()->delete();
-            return response()->json([
-                'message' => 'Logged out successfully'
-            ]);
-        }
+        $request->user()->tokens()->delete();
 
         return response()->json([
-            'message' => 'No active session'
-        ], 400);
+            'success' => true,
+            'message' => 'Logged out successfully',
+        ]);
     }
 
+    // =======================
+    // GET AUTHENTICATED USER
+    // =======================
     public function user(Request $request)
     {
         // ✅ Load relationships បន្ថែម
         $user = $request->user()->load('role', 'profile');
-        
+
         return response()->json([
             'user' => $user
         ]);
     }
 
-    // ✅ បន្ថែម function ថ្មីសម្រាប់ refresh token
+    // =======================
+    // REFRESH TOKEN
+    // =======================
     public function refresh(Request $request)
     {
         $user = $request->user();
-        $user->tokens()->delete(); // លុប tokens ចាស់
-        
+        $user->tokens()->delete();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'success' => true,
             'message' => 'Token refreshed successfully',
             'access_token' => $token,
             'token_type' => 'Bearer',
